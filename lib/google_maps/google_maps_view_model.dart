@@ -16,15 +16,16 @@ abstract class GoogleMapsViewModel extends State<GoogleMaps> {
       bearing: 192.8334901395799,
       target: LatLng(38.9637, 35.2433),
       tilt: 59.440717697143555,
-      zoom: 4);
+      zoom: 8);
 
-    Future initMapItemLit() async {
+    Future initMapItemList() async {  
       final response = await http.get("$firebaseServiceEndpoint.json");
       switch (response.statusCode){
       case HttpStatus.ok:
       final jsonData = jsonDecode(response.body);
       if(jsonData is List){
         flightList = jsonData.map((e) => FligtsMapModel.fromJson(e)).cast<FligtsMapModel>().toList();
+        controller.animateCamera(CameraUpdate.newLatLng(LatLng(flightList.last.lat,flightList.last.long)));
         setState(() {
           
         });

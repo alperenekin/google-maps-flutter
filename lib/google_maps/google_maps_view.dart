@@ -1,49 +1,92 @@
 import 'package:flightflutter/google_maps/google_maps_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
 
 class GoogleMapsView extends GoogleMapsViewModel {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      floatingActionButton: buildFloatingActionButton(),
-      body: buildGoogleMap(),
+      body: Stack(
+        children: [buildGoogleMap(), buildPositioned()],
+      ),
     );
   }
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => {
+      initMapItemList()}
+    );
+  }
+
+  Positioned buildPositioned() {
+    return Positioned(
+      bottom: 20,
+      left: 20,
+      width: MediaQuery.of(context).size.width,
+      height: 100,
+      child: flightList.isEmpty ? loadingWidget : buildListViewFlights(),
+    );
+  }
+
+  ListView buildListViewFlights() {
+    return ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: flightList.length,
+        shrinkWrap: true,
+        itemBuilder: (context, index) {
+          return SizedBox(
+            width: MediaQuery.of(context).size.width - 100,
+            child: Card(
+              child: ListTile(
+                onTap: () => controller.animateCamera(CameraUpdate.newLatLng(LatLng(flightList[index].lat, flightList[index].long))),
+                title: Text(flightList[index].country)),
+            ),
+          );
+        });
+  }
+
+  Widget get loadingWidget => Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation(Colors.white),
+        ),
+      );
 
   GoogleMap buildGoogleMap() {
     return GoogleMap(
       mapType: MapType.normal,
       initialCameraPosition: kLake,
-      onMapCreated: (map) {
+      onMapCreated: (map) async {
+       await Future.delayed(Duration(seconds: 2));
         controller = map;
+        setState(() {
+          
+        });
       },
       markers: createMarker(),
     );
   }
 
-
   FloatingActionButton buildFloatingActionButton() {
     return FloatingActionButton(
       onPressed: () {
-        controller.animateCamera(CameraUpdate.newLatLng(LatLng(40.9906621, 29.0200943)));
+        controller.animateCamera(
+            CameraUpdate.newLatLng(LatLng(40.9906621, 29.0200943)));
       },
     );
   }
 }
 
-
-extension GoogleMapsMarker on GoogleMapsView{
+extension GoogleMapsMarker on GoogleMapsView {
   Set<Marker> createMarker() {
-    return <Marker>[
-      Marker(
-          markerId: MarkerId("asdad"),
-          position: kLake.target,
+    return flightList.map((e) => Marker(
+          markerId: MarkerId(e.hashCode.toString()),
+          position: LatLng(e.lat,e.long),
           zIndex: 10,
-          infoWindow: InfoWindow(title:"Hello"),
+          infoWindow: InfoWindow(title: e.country),
           icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure))
-    ].toSet();
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure))).toSet();   
   }
 }
