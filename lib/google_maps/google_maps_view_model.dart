@@ -9,33 +9,35 @@ import 'package:http/http.dart' as http;
 import './google_maps.dart';
 
 abstract class GoogleMapsViewModel extends State<GoogleMaps> {
-    GoogleMapController controller;
-    List<FligtsMapModel> flightList;
-    final firebaseServiceEndpoint = "https://fir-map-afbea.firebaseio.com/maps";
-    final CameraPosition kLake = CameraPosition(
+  GoogleMapController controller;
+  BitmapDescriptor dogIcon;
+  List<FligtsMapModel> flightList = [];
+  final firebaseServiceEndpoint = "https://fir-map-afbea.firebaseio.com/maps";
+  final CameraPosition kLake = CameraPosition(
       bearing: 192.8334901395799,
       target: LatLng(38.9637, 35.2433),
       tilt: 59.440717697143555,
-      zoom: 8);
+      zoom: 4);
 
-    Future initMapItemList() async {  
-      final response = await http.get("$firebaseServiceEndpoint.json");
-      switch (response.statusCode){
+  Future initMapItemList() async {
+    final response = await http.get("$firebaseServiceEndpoint.json");
+    switch (response.statusCode) {
       case HttpStatus.ok:
-      final jsonData = jsonDecode(response.body);
-      if(jsonData is List){
-        flightList = jsonData.map((e) => FligtsMapModel.fromJson(e)).cast<FligtsMapModel>().toList();
-        controller.animateCamera(CameraUpdate.newLatLng(LatLng(flightList.last.lat,flightList.last.long)));
-        setState(() {
-          
-        });
-      }else if(jsonData is Map){
-        
-      }else{
-        return jsonData;
-      }
+        final jsonData = jsonDecode(response.body);
+        if (jsonData is List) {
+          flightList = jsonData
+              .map((e) => FligtsMapModel.fromJson(e))
+              .cast<FligtsMapModel>()
+              .toList();
+          controller.animateCamera(CameraUpdate.newLatLng(
+              LatLng(flightList.last.lat, flightList.last.long)));
+          setState(() {});
+        } else if (jsonData is Map) {
+        } else {
+          return jsonData;
+        }
         break;
       default:
     }
-    }
+  }
 }

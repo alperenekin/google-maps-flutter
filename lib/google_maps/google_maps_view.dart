@@ -16,9 +16,7 @@ class GoogleMapsView extends GoogleMapsViewModel {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => {
-      initMapItemList()}
-    );
+    Future.microtask(() => {initMapItemList()});
   }
 
   Positioned buildPositioned() {
@@ -41,8 +39,9 @@ class GoogleMapsView extends GoogleMapsViewModel {
             width: MediaQuery.of(context).size.width - 100,
             child: Card(
               child: ListTile(
-                onTap: () => controller.animateCamera(CameraUpdate.newLatLng(LatLng(flightList[index].lat, flightList[index].long))),
-                title: Text(flightList[index].country)),
+                  onTap: () => controller.animateCamera(CameraUpdate.newLatLng(
+                      LatLng(flightList[index].lat, flightList[index].long))),
+                  title: Text(flightList[index].country)),
             ),
           );
         });
@@ -59,11 +58,8 @@ class GoogleMapsView extends GoogleMapsViewModel {
       mapType: MapType.normal,
       initialCameraPosition: kLake,
       onMapCreated: (map) async {
-       await Future.delayed(Duration(seconds: 2));
         controller = map;
-        setState(() {
-          
-        });
+        await createMarkerImageFromAsset(context);
       },
       markers: createMarker(),
     );
@@ -77,16 +73,28 @@ class GoogleMapsView extends GoogleMapsViewModel {
       },
     );
   }
+
+  Future<void> createMarkerImageFromAsset(BuildContext context) async {
+    final ImageConfiguration imageConfiguration =
+        createLocalImageConfiguration(context);
+    var bitmap = await BitmapDescriptor.fromAssetImage(
+        imageConfiguration, 'assets/images/dog.png');
+    dogIcon = bitmap;
+    setState(() {});
+    // print(dogIcon);
+  }
 }
 
 extension GoogleMapsMarker on GoogleMapsView {
   Set<Marker> createMarker() {
-    return flightList.map((e) => Marker(
-          markerId: MarkerId(e.hashCode.toString()),
-          position: LatLng(e.lat,e.long),
-          zIndex: 10,
-          infoWindow: InfoWindow(title: e.country),
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure))).toSet();   
+    return flightList
+        .map((e) => Marker(
+            markerId: MarkerId(e.hashCode.toString()),
+            position: LatLng(e.lat, e.long),
+            zIndex: 10,
+            infoWindow: InfoWindow(title: e.country),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueAzure)))
+        .toSet();
   }
 }
